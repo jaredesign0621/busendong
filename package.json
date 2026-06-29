@@ -1,0 +1,11 @@
+{
+  "name": "busendong",
+  "version": "1.0.0",
+  "description": "Busendong Local Server Settings",
+  "scripts": {
+    "dev": "serve -l 3001"
+  },
+  "dependencies": {
+    "serve": "^14.2.6"
+  }
+}

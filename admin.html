@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <title>부센동 | 프리미엄 통합 어드민 시스템</title>
+  <meta name="theme-color" content="#050505">
+  
+  <link rel="stylesheet" href="asset/css/index.css">
+  
+  <!-- Special Admin Page Custom Styles -->
+  <style>
+    body {
+      background-color: var(--bg-primary);
+      min-height: 100vh;
+      display: block;
+    }
+    
+    /* Layout with Left Sidebar (LNB) */
+    .admin-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    .admin-sidebar {
+      width: 280px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--glass-border);
+      padding: 40px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: fixed;
+      height: 100vh;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      box-shadow: 10px 0 30px rgba(0,0,0,0.3);
+      transition: var(--transition-smooth);
+    }
+    
+    .admin-content {
+      flex-grow: 1;
+      padding: 50px 40px;
+      margin-left: 280px;
+      background-color: var(--bg-primary);
+      min-height: 100vh;
+      transition: var(--transition-smooth);
+    }
+    
+    /* Sidebar Header & Brand */
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 50px;
+    }
+    .sidebar-brand-text {
+      font-family: var(--font-title);
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: linear-gradient(135deg, var(--text-primary) 30%, var(--color-gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    /* Sidebar Navigation Link List */
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      list-style: none;
+      flex-grow: 1;
+    }
+    
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: 1px solid transparent;
+    }
+    .sidebar-link:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.02);
+      border-color: rgba(255,255,255,0.03);
+    }
+    .sidebar-link.active {
+      color: var(--bg-primary);
+      background: var(--color-gold);
+      font-weight: 600;
+      box-shadow: 0 8px 25px rgba(244, 128, 53, 0.25);
+      border-color: var(--color-gold);
+    }
+    
+    .sidebar-link svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      transition: var(--transition-fast);
+    }
+    .sidebar-link.active svg {
+      stroke: var(--bg-primary);
+    }
+    
+    /* Sidebar Footer Logged in Info */
+    .sidebar-footer {
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding-top: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .admin-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .admin-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(244, 128, 53, 0.1);
+      border: 1px solid rgba(244, 128, 53, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-gold);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    
+    .admin-meta h4 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .admin-meta span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    
+    .btn-logout {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid rgba(233, 94, 71, 0.2);
+      color: #E95E47;
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition-fast);
+      background: rgba(233, 94, 71, 0.02);
+    }
+    .btn-logout:hover {
+      background: rgba(233, 94, 71, 0.1);
+      border-color: #E95E47;
+    }
+    
+    /* Layout lock hide dashboards */
+    .dashboard-locked .admin-sidebar,
+    .dashboard-locked .admin-content {
+      display: none !important;
+    }
+    
+    /* Active Section Panels control */
+    .admin-section {
+      display: none;
+      animation: fadeInSection 0.4s ease forwards;
+    }
+    .admin-section.active {
+      display: block;
+    }
+    
+    @keyframes fadeInSection {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Header title on content */
+    .content-header {
+      margin-bottom: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    
+    .content-title h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .content-title p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    
+    /* Stats Widgets Dashboard */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    
+    .stat-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--glass-shadow);
+      transition: var(--transition-smooth);
+    }
+    .stat-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(244, 128, 53, 0.2);
+    }
+    
+    .stat-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: block;
+      font-weight: 600;
+    }
+    
+    .stat-value {
+      font-family: var(--font-title);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    .stat-value.brand {
+      color: var(--color-gold);
+    }
+    
+    .stat-indicator {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--glass-border);
+    }
+    
+    .stat-card:nth-child(1) .stat-indicator { background: var(--color-gold); }
+    .stat-card:nth-child(2) .stat-indicator { background: #E2B235; }
+    .stat-card:nth-child(3) .stat-indicator { background: #35B47E; }
+    .stat-card:nth-child(4) .stat-indicator { background: #E95E47; }
+
+    /* Controls Bar */
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .search-box {
+      position: relative;
+      max-width: 350px;
+      width: 100%;
+    }
+    
+    .search-input {
+      width: 100%;
+      background: var(--bg-secondary);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 12px 18px 12px 40px;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      transition: var(--transition-fast);
+    }
+    .search-input:focus {
+      border-color: var(--color-gold);
+      box-shadow: 0 0 10px rgba(244, 128, 53, 0.15);
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+    }
+    
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 4px;
+    }
+    
+    .filter-tab {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .filter-tab:hover {
+      color: var(--text-primary);
+    }
+    .filter-tab.active {
+      background: var(--color-gold);
+      color: var(--bg-primary);
+      font-weight: 600;
+    }
+
+    /* Glass Table Container */
+    .table-container {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      overflow-x: auto;
+      box-shadow: var(--glass-shadow);
+      margin-bottom: 20px;
+    }
+    
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    
+    .admin-table th {
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 18px 20px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+    }
+    
+    .admin-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+      vertical-align: middle;
+      transition: var(--transition-fast);
+    }
+    
+    .admin-table tr.clickable-row {
+      cursor: pointer;
+    }
+    .admin-table tr.clickable-row:hover td {
+      background: rgba(255, 255, 255, 0.015);
+    }
+    
+    .admin-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .res-code {
+      font-family: var(--font-title);
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    
+    .res-name-cell {
+      font-weight: 600;
+    }
+    
+    /* Elegant Badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .status-badge.pending {
+      background: rgba(226, 178, 53, 0.1);
+      color: #E2B235;
+      border: 1px solid rgba(226, 178, 53, 0.2);
+    }
+    .status-badge.confirmed {
+      background: rgba(53, 180, 126, 0.1);
+      color: #35B47E;
+      border: 1px solid rgba(53, 180, 126, 0.2);
+    }
+    .status-badge.cancelled {
+      background: rgba(233, 94, 71, 0.1);
+      color: #E95E47;
+      border: 1px solid rgba(233, 94, 71, 0.2);
+    }
+    
+    /* Category Badges for Menu Items */
+    .category-badge {
+      display: inline-flex;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .category-badge.signature {
+      background: rgba(244, 128, 53, 0.1);
+      color: var(--color-gold);
+      border-color: rgba(244, 128, 53, 0.2);
+    }
+    .category-badge.donburi {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-primary);
+    }
+    .category-badge.sides {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-secondary);
+    }
+    
+    /* Action Buttons in Table */
+    .actions-cell {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn-action {
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      border: none;
+    }
+    .btn-action.approve {
+      background: #35B47E;
+      color: #000;
+    }
+    .btn-action.approve:hover {
+      background: #2ea370;
+      box-shadow: 0 0 10px rgba(53, 180, 126, 0.2);
+    }
+    .btn-action.cancel {
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text-secondary);
+      background: none;
+    }
+    .btn-action.cancel:hover {
+      background: rgba(233, 94, 71, 0.15);
+      border-color: #E95E47;
+      color: #E95E47;
+    }
+    .btn-action.edit {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+      border: 1px solid var(--glass-border);
+    }
+    .btn-action.edit:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: var(--text-primary);
+    }
+    .btn-action.delete {
+      background: rgba(233, 94, 71, 0.05);
+      color: #E95E47;
+      border: 1px solid rgba(233, 94, 71, 0.1);
+    }
+    .btn-action.delete:hover {
+      background: #E95E47;
+      color: #000;
+      border-color: #E95E47;
+    }
+    
+    .empty-state {
+      padding: 50px 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      opacity: 0.3;
+    }
+    
+    /* Details Overlay Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition-smooth);
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .modal-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 550px;
+      padding: 40px;
+      box-shadow: var(--glass-shadow);
+      position: relative;
+      transform: translateY(30px);
+      transition: var(--transition-smooth);
+    }
+    .modal-overlay.active .modal-card {
+      transform: translateY(0);
+    }
+    
+    .btn-close-modal {
+      position: absolute;
+      top: 25px;
+      right: 25px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.5rem;
+      line-height: 1;
+      transition: var(--transition-fast);
+    }
+    .btn-close-modal:hover {
+      color: var(--text-primary);
+    }
+    
+    .modal-section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-gold);
+      margin-bottom: 20px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 8px;
+    }
+    
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .detail-item.full {
+      grid-column: span 2;
+    }
+    
+    .detail-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    
+    .detail-value {
+      font-size: 1rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    
+    .detail-value.request-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 15px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      font-family: var(--font-body);
+      min-height: 80px;
+      white-space: pre-line;
+    }
+    
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    
+    .modal-btn {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: none;
+    }
+    .modal-btn.confirm {
+      background: #35B47E;
+      color: #000;
+    }
+    .modal-btn.confirm:hover {
+      background: #2ea370;
+    }
+    .modal-btn.cancel {
+      border: 1px solid rgba(233, 94, 71, 0.3);
+      color: #E95E47;
+      background: rgba(233, 94, 71, 0.05);
+    }
+    .modal-btn.cancel:hover {
+      background: rgba(233, 94, 71, 0.15);
+      border-color: #E95E47;
+    }
+
+    /* Login Page Styling */
+    .login-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+      padding: 20px;
+    }
+    
+    .login-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 420px;
+      padding: 50px 40px;
+      box-shadow: var(--glass-shadow);
+      text-align: center;
+      position: relative;
+    }
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 24px;
+      box-shadow: var(--glass-glow);
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .login-logo {
+      margin-bottom: 30px;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .login-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .login-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 30px;
+      display: block;
+    }
+    
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      text-align: left;
+    }
+    
+    .login-error-msg {
+      color: #E95E47;
+      font-size: 0.82rem;
+      font-weight: 500;
+      margin-top: 5px;
+      display: none;
+    }
+    
+    /* Login Shaking Animation on Error */
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .login-card.shake {
+      animation: shakeError 0.4s ease-in-out;
+    }
+
+    @media (max-width: 1024px) {
+      .admin-sidebar {
+        width: 80px;
+        padding: 30px 10px;
+        align-items: center;
+      }
+      .sidebar-brand-text, .admin-meta, .btn-logout span {
+        display: none !important;
+      }
+      .sidebar-link span {
+        display: none;
+      }
+      .sidebar-link {
+        padding: 14px;
+        justify-content: center;
+        border-radius: 50%;
+      }
+      .admin-content {
+        margin-left: 80px;
+        padding: 40px 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .admin-layout {
+        flex-direction: column;
+      }
+      .admin-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 20px;
+        flex-direction: row;
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+      }
+      .sidebar-nav {
+        flex-direction: row;
+        gap: 10px;
+        flex-grow: 0;
+      }
+      .sidebar-footer {
+        display: none;
+      }
+      .admin-content {
+        margin-left: 0;
+        padding: 30px 15px;
+      }
+      .controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .search-box {
+        max-width: none;
+      }
+      .filter-tabs {
+        overflow-x: auto;
+      }
+      .modal-card {
+        padding: 25px;
+        margin: 20px;
+      }
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+      .detail-item.full {
+        grid-column: span 1;
+      }
+    }
+  </style>
+</head>
+<body class="dashboard-locked">
+
+  <!-- ==========================================
+       ADMIN SECURE LOGIN OVERLAY
+       ========================================== -->
+  <div class="login-wrapper" id="login-wrapper">
+    <div class="login-card" id="login-card">
+      <div class="login-logo">
+        <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 10C27.9 10 10 27.9 10 50C10 72.1 27.9 90 50 90C72.1 90 90 72.1 90 50C90 27.9 72.1 10 50 10ZM50 82C32.3 82 18 67.7 18 50C18 39.4 23.2 29.9 31.1 24.1C32.4 26.5 34.3 28.5 36.7 29.8C34.7 34.7 34.9 40.2 37.3 45C38.6 47.6 40.6 49.6 43 50.8C40.6 55.7 40.8 61.2 43.3 66C44.6 68.6 46.6 70.6 49 71.8C47.8 74.2 47.6 77 48.7 79.5C49.1 79.8 49.5 80.1 50 80.3C50.5 80.1 50.9 79.8 51.3 79.5C52.4 77 52.2 74.2 51 71.8C53.4 70.6 55.4 68.6 56.7 66C59.2 61.2 59.4 55.7 57 50.8C59.4 49.6 61.4 47.6 62.7 45C65.1 40.2 65.3 34.7 63.3 29.8C65.7 28.5 67.6 26.5 68.9 24.1C76.8 29.9 82 39.4 82 50C82 67.7 67.7 82 50 82Z" fill="url(#login-paint0)"/>
+          <path d="M50 63C52.8 63 55 60.8 55 58C55 55.2 52.8 53 50 53C47.2 53 45 55.2 45 58C45 60.8 47.2 63 50 63Z" fill="url(#login-paint1)"/>
+          <path d="M50 42C52.8 42 55 39.8 55 37C55 34.2 52.8 32 50 32C47.2 32 45 34.2 45 37C45 39.8 47.2 42 50 42Z" fill="url(#login-paint1)"/>
+          <defs>
+            <linearGradient id="login-paint0" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#FFFFFF"/>
+              <stop offset="1" stop-color="#F48035"/>
+            </linearGradient>
+            <linearGradient id="login-paint1" x1="45" y1="32" x2="55" y2="63" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#F48035"/>
+              <stop offset="1" stop-color="#E98A6F"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <h2 class="login-title">BUSENDONG ADMIN</h2>
+      </div>
+      
+      <span class="login-subtitle">관리자 보안 시스템 로그인</span>
+      
+      <form id="admin-login-form" class="login-form">
+        <div class="form-group">
+          <label for="login-id" class="form-label">아이디 (ID)</label>
+          <input type="text" id="login-id" class="form-input" placeholder="관리자 아이디" required autocomplete="username">
+        </div>
+        
+        <div class="form-group">
+          <label for="login-pw" class="form-label">비밀번호 (PASSWORD)</label>
+          <input type="password" id="login-pw" class="form-input" placeholder="비밀번호" required autocomplete="current-password">
+          <span class="login-error-msg" id="login-error-msg">아이디 또는 비밀번호가 올바르지 않습니다.</span>
+        </div>
+        
+        <button type="submit" class="btn-submit" style="margin-top: 10px;">어드민 로그인</button>
+      </form>
+      
+      <a href="index.html" style="display:inline-block; margin-top:20px; font-size:0.8rem; color:var(--text-muted); text-decoration:underline;">
+        메인 홈페이지로 돌아가기
+      </a>
+    </div>
+  </div>
+
+
+  <!-- ==========================================
+       ADMIN SIDEBAR & LNB LAYOUT
+       ========================================== -->
+  <div class="admin-layout">
+    
+    <!-- Sidebar / LNB -->
+    <aside class="admin-sidebar">
+      <!-- Logo Brand -->
+      <div class="sidebar-brand">
+        <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 10C27.9 10 10 27.9 10 50C10 72.1 27.9 90 50 90C72.1 90 90 72.1 90 50C90 27.9 72.1 10 50 10ZM50 82C32.3 82 18 67.7 18 50C18 39.4 23.2 29.9 31.1 24.1C32.4 26.5 34.3 28.5 36.7 29.8C34.7 34.7 34.9 40.2 37.3 45C38.6 47.6 40.6 49.6 43 50.8C40.6 55.7 40.8 61.2 43.3 66C44.6 68.6 46.6 70.6 49 71.8C47.8 74.2 47.6 77 48.7 79.5C49.1 79.8 49.5 80.1 50 80.3C50.5 80.1 50.9 79.8 51.3 79.5C52.4 77 52.2 74.2 51 71.8C53.4 70.6 55.4 68.6 56.7 66C59.2 61.2 59.4 55.7 57 50.8C59.4 49.6 61.4 47.6 62.7 45C65.1 40.2 65.3 34.7 63.3 29.8C65.7 28.5 67.6 26.5 68.9 24.1C76.8 29.9 82 39.4 82 50C82 67.7 67.7 82 50 82Z" fill="url(#paint0_linear)"/>
+          <path d="M50 63C52.8 63 55 60.8 55 58C55 55.2 52.8 53 50 53C47.2 53 45 55.2 45 58C45 60.8 47.2 63 50 63Z" fill="url(#paint1_linear)"/>
+          <path d="M50 42C52.8 42 55 39.8 55 37C55 34.2 52.8 32 50 32C47.2 32 45 34.2 45 37C45 39.8 47.2 42 50 42Z" fill="url(#paint1_linear)"/>
+          <defs>
+            <linearGradient id="paint0_linear" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#FFFFFF"/>
+              <stop offset="1" stop-color="#F48035"/>
+            </linearGradient>
+            <linearGradient id="paint1_linear" x1="45" y1="32" x2="55" y2="63" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#F48035"/>
+              <stop offset="1" stop-color="#E98A6F"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="sidebar-brand-text">BUSENDONG</span>
+      </div>
+
+      <!-- Navigation links -->
+      <ul class="sidebar-nav">
+        <li>
+          <div class="sidebar-link active" id="nav-btn-reservations" data-section="reservations">
+            <!-- Calendar Icon SVG -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span>예약 현황 관리</span>
+          </div>
+        </li>
+        <li>
+          <div class="sidebar-link" id="nav-btn-menus" data-section="menus">
+            <!-- BookOpen Icon SVG -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            <span>메뉴 항목 관리</span>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="admin-info">
+          <div class="admin-avatar">A</div>
+          <div class="admin-meta">
+            <h4>어드민 관리자</h4>
+            <span>점장 권한</span>
+          </div>
+        </div>
+        <button class="btn-logout" id="btn-admin-logout">
+          <span>어드민 로그아웃</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Content -->
+    <div class="admin-content">
+      
+      <!-- ==========================================
+           SECTION 1: RESERVATIONS DASHBOARD
+           ========================================== -->
+      <section id="reservations-section" class="admin-section active" style="padding:0; overflow:visible;">
+        
+        <!-- Header Info -->
+        <div class="content-header">
+          <div class="content-title">
+            <h2>예약 현황 관리</h2>
+            <p>실시간으로 고객이 신청한 온라인 예약을 관리하고 처리할 수 있는 대시보드입니다.</p>
+          </div>
+        </div>
+        
+        <!-- Stats Grid Row -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-title">총 예약 신청 건수</span>
+            <span class="stat-value" id="stat-total">0</span>
+            <div class="stat-indicator"></div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">승인 대기 중</span>
+            <span class="stat-value text-gold" id="stat-pending">0</span>
+            <div class="stat-indicator"></div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">예약 확정</span>
+            <span class="stat-value" style="color: #35B47E;" id="stat-confirmed">0</span>
+            <div class="stat-indicator"></div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">예약 취소됨</span>
+            <span class="stat-value" style="color: #E95E47;" id="stat-cancelled">0</span>
+            <div class="stat-indicator"></div>
+          </div>
+        </div>
+
+        <!-- Controls & Filter Section -->
+        <div class="controls-bar">
+          <!-- Search Box -->
+          <div class="search-box">
+            <div class="search-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
+            <input type="text" id="search-input" class="search-input" placeholder="예약자 성함 또는 연락처로 검색...">
+          </div>
+
+          <!-- Filter tabs -->
+          <div class="filter-tabs">
+            <div class="filter-tab active" data-tab="all">전체보기</div>
+            <div class="filter-tab" data-tab="대기중">대기중</div>
+            <div class="filter-tab" data-tab="확정됨">확정됨</div>
+            <div class="filter-tab" data-tab="취소됨">취소됨</div>
+          </div>
+        </div>
+
+        <!-- Reservations Table -->
+        <div class="table-container">
+          <table class="admin-table" id="admin-table">
+            <thead>
+              <tr>
+                <th width="15%">예약 코드</th>
+                <th width="15%">예약자 성함</th>
+                <th width="20%">연락처</th>
+                <th width="15%">방문 일시</th>
+                <th width="10%">인원수</th>
+                <th width="10%">선호 좌석</th>
+                <th width="10%">예약 상태</th>
+                <th width="5%">관리 Action</th>
+              </tr>
+            </thead>
+            <tbody id="res-table-body">
+              <!-- Populated via Javascript -->
+            </tbody>
+          </table>
+          
+          <!-- Table Empty State -->
+          <div id="table-empty-state" class="empty-state" style="display: none;">
+            <div class="empty-icon">📂</div>
+            <h3>접수된 예약 내역이 없습니다</h3>
+            <p style="font-size: 0.9rem; margin-top: 5px;">홈페이지에서 새로운 예약을 등록하시면 실시간으로 이곳에 노출됩니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SECTION 2: MENU MANAGEMENT
+           ========================================== -->
+      <section id="menus-section" class="admin-section" style="padding:0; overflow:visible;">
+        
+        <!-- Header Info -->
+        <div class="content-header">
+          <div class="content-title">
+            <h2>메뉴 항목 관리</h2>
+            <p>실제 메인페이지에 노출되는 카이센동 식재료와 가격, 카테고리를 직접 관리합니다.</p>
+          </div>
+          <!-- Add Menu / Category trigger buttons -->
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-secondary" id="btn-manage-categories-modal" style="font-size: 0.85rem; padding: 12px 20px; cursor: pointer;">
+              ⚙️ 카테고리 관리
+            </button>
+            <button class="btn-primary" id="btn-add-menu-modal" style="font-size: 0.85rem; padding: 12px 20px; cursor: pointer;">
+              + 새로운 메뉴 추가
+            </button>
+          </div>
+        </div>
+
+        <!-- Menu Filter and Search Controls -->
+        <div class="controls-bar">
+          <div class="search-box">
+            <div class="search-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
+            <input type="text" id="menu-search-input" class="search-input" placeholder="메뉴 이름 또는 재료로 검색...">
+          </div>
+
+          <div class="filter-tabs" id="menu-filter-tabs">
+            <div class="filter-tab active" data-menutab="all">전체보기</div>
+            <div class="filter-tab" data-menutab="signature">시그니처</div>
+            <div class="filter-tab" data-menutab="donburi">단품 덮밥</div>
+            <div class="filter-tab" data-menutab="sides">프리미엄 곁들임</div>
+          </div>
+        </div>
+
+        <!-- Menu Items List Table -->
+        <div class="table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th width="10%">카테고리</th>
+                <th width="20%">메뉴 이름</th>
+                <th width="15%">판매 가격 (KRW)</th>
+                <th width="35%">대표 재료 (태그)</th>
+                <th width="20%">관리 기능</th>
+              </tr>
+            </thead>
+            <tbody id="menu-table-body">
+              <!-- Dynamically hydrated via JS -->
+            </tbody>
+          </table>
+          
+          <div id="menu-empty-state" class="empty-state" style="display: none;">
+            <div class="empty-icon">🍱</div>
+            <h3>등록된 메뉴 항목이 없습니다</h3>
+            <p style="font-size: 0.9rem; margin-top: 5px;">우측 상단의 '+ 새로운 메뉴 추가' 버튼을 눌러 부센동만의 맛을 등록해 보세요.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 1: RESERVATION DETAILS MODAL (OVERLAY)
+       ========================================== -->
+  <div class="modal-overlay" id="detail-modal-overlay">
+    <div class="modal-card">
+      <div class="btn-close-modal" id="btn-modal-close">&times;</div>
+      
+      <span class="form-label" style="color: var(--color-gold); margin-bottom: 5px; display: block;">RESERVATION DETAIL</span>
+      <h3 style="font-size: 1.8rem; margin-bottom: 25px;" id="modal-title-code">RES-0000000000000</h3>
+      
+      <div class="modal-section-title">예약 상세 내역</div>
+      
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">예약자 성함</span>
+          <span class="detail-value" id="det-name">-</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">연락처</span>
+          <span class="detail-value" id="det-phone">-</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">방문 일시</span>
+          <span class="detail-value" id="det-datetime">-</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">예약 인원</span>
+          <span class="detail-value" id="det-guests">-</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">선호 좌석</span>
+          <span class="detail-value" id="det-seating">-</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">예약 상태</span>
+          <span class="detail-value" id="det-status">-</span>
+        </div>
+        <div class="detail-item full">
+          <span class="detail-label">고객 요청 사항</span>
+          <div class="detail-value request-box" id="det-requests">-</div>
+        </div>
+      </div>
+      
+      <!-- Modal Action buttons -->
+      <div class="modal-actions" id="modal-actions-container">
+        <button class="modal-btn confirm" id="btn-modal-approve">예약 확정</button>
+        <button class="modal-btn cancel" id="btn-modal-reject">예약 거절/취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: ADD / EDIT MENU MODAL (OVERLAY)
+       ========================================== -->
+  <div class="modal-overlay" id="menu-modal-overlay">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="btn-close-modal" id="btn-menu-modal-close">&times;</div>
+      
+      <span class="form-label" style="color: var(--color-gold); margin-bottom: 5px; display: block;">MENU MANAGEMENT</span>
+      <h3 style="font-size: 1.8rem; margin-bottom: 25px;" id="menu-modal-title">메뉴 등록</h3>
+      
+      <form id="menu-manage-form">
+        <!-- Hidden ID for edit state -->
+        <input type="hidden" id="menu-form-id" value="">
+        
+        <div class="form-grid" style="margin-bottom: 25px;">
+          <!-- Name -->
+          <div class="form-group">
+            <label for="menu-form-name" class="form-label">메뉴명 *</label>
+            <input type="text" id="menu-form-name" class="form-input" placeholder="예: 스페셜 우니 카이센동" required>
+          </div>
+          
+          <!-- Category -->
+          <div class="form-group">
+            <label for="menu-form-category" class="form-label">카테고리 *</label>
+            <select id="menu-form-category" class="form-input" required>
+              <!-- Dynamically populated from LocalStorage via admin.js -->
+            </select>
+          </div>
+
+          <!-- Price -->
+          <div class="form-group">
+            <label for="menu-form-price" class="form-label">판매 가격 * (원, 숫자만)</label>
+            <input type="number" id="menu-form-price" class="form-input" placeholder="예: 25000" min="0" required>
+          </div>
+
+          <!-- Tags/Ingredients -->
+          <div class="form-group">
+            <label for="menu-form-tags" class="form-label">대표 재료 태그 (쉼표로 구분)</label>
+            <input type="text" id="menu-form-tags" class="form-input" placeholder="예: 우니, 참다랑어, 이쿠라">
+          </div>
+
+          <!-- Badge/Flag Select -->
+          <div class="form-group full-width">
+            <label for="menu-form-badge" class="form-label">이미지 좌측 상단 플래그 선택</label>
+            <select id="menu-form-badge" class="form-input">
+              <option value="">설정 안 함 (없음)</option>
+              <option value="대표">대표 (Signature)</option>
+              <option value="인기">인기 (Popular)</option>
+            </select>
+          </div>
+
+          <!-- Image Select -->
+          <div class="form-group full-width">
+            <label for="menu-form-image" class="form-label">메뉴 매핑 이미지 선택 *</label>
+            <select id="menu-form-image" class="form-input" required>
+              <option value="asset/img/kaisendon-signature.png">대표 카이센동 이미지 (kaisendon-signature.png)</option>
+              <option value="asset/img/kaisendon-special.png">스페셜 카이센동 이미지 (kaisendon-special.png)</option>
+              <option value="asset/img/restaurant-interior.png">아늑한 매장 인테리어 이미지 (restaurant-interior.png)</option>
+            </select>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group full-width">
+            <label for="menu-form-desc" class="form-label">메뉴 상세 설명 *</label>
+            <textarea id="menu-form-desc" class="form-input" style="min-height: 80px;" placeholder="메뉴에 대한 매력적인 카피라이팅을 2~3줄 내외로 기재해 주세요." required></textarea>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn-submit" id="btn-menu-submit">메뉴 저장하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 3: CATEGORY MANAGEMENT MODAL (OVERLAY)
+       ========================================== -->
+  <div class="modal-overlay" id="category-modal-overlay">
+    <div class="modal-card" style="max-width: 500px;">
+      <div class="btn-close-modal" id="btn-category-modal-close">&times;</div>
+      
+      <span class="form-label" style="color: var(--color-gold); margin-bottom: 5px; display: block;">CATEGORY SYSTEM</span>
+      <h3 style="font-size: 1.8rem; margin-bottom: 25px;">카테고리 관리</h3>
+      
+      <div class="modal-section-title">활성화된 카테고리 목록</div>
+      
+      <!-- Category List Container -->
+      <div id="category-manager-list" style="margin-bottom: 30px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
+        <!-- Dynamically populated via JS -->
+      </div>
+      
+      <div class="modal-section-title">새로운 카테고리 추가</div>
+      
+      <!-- Inline add form -->
+      <form id="category-add-form" style="display: flex; gap: 10px; align-items: flex-end;">
+        <div class="form-group" style="flex-grow: 1; margin-bottom: 0;">
+          <label for="category-add-name" class="form-label">카테고리명 *</label>
+          <input type="text" id="category-add-name" class="form-input" placeholder="예: 계절 특선, 코스 요리" required>
+        </div>
+        <button type="submit" class="btn-primary" style="height: 49px; border-radius: 8px; font-size: 0.85rem; padding: 0 20px; font-weight: 600; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+          추가
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="asset/js/admin.js"></script>
+</body>
+</html>
