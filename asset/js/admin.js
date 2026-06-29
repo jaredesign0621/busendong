@@ -268,6 +268,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const saveReservations = (reservations) => {
     localStorage.setItem('busendong_reservations', JSON.stringify(reservations));
+    if (typeof db !== 'undefined') {
+      reservations.forEach(res => {
+        db.collection('reservations').doc(res.id).set(res)
+          .catch(err => console.error('[Firestore] Error saving reservation:', err));
+      });
+    }
   };
 
   // Re-calculate Stats
@@ -482,6 +488,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const saveMenuStorage = (menus) => {
     localStorage.setItem('busendong_menu_items', JSON.stringify(menus));
+    if (typeof db !== 'undefined') {
+      menus.forEach(menu => {
+        db.collection('menus').doc(menu.id).set(menu)
+          .catch(err => console.error('[Firestore] Error saving menu item:', err));
+      });
+    }
   };
 
   const getCategoriesStorage = () => {
@@ -490,6 +502,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const saveCategoriesStorage = (categories) => {
     localStorage.setItem('busendong_categories', JSON.stringify(categories));
+    if (typeof db !== 'undefined') {
+      categories.forEach(cat => {
+        db.collection('categories').doc(cat.id).set(cat)
+          .catch(err => console.error('[Firestore] Error saving category:', err));
+      });
+    }
   };
 
   // Populate dynamic category selector options in Menu modal
@@ -560,6 +578,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let categories = getCategoriesStorage();
     categories = categories.filter(c => c.id !== catId);
     saveCategoriesStorage(categories);
+
+    // Sync deletion to Firestore
+    if (typeof db !== 'undefined') {
+      db.collection('categories').doc(catId).delete()
+        .catch(err => console.error('[Firestore] Error deleting category:', err));
+    }
 
     // 2. Reassign associated menu items to 'signature'
     let menus = getMenuStorage();
@@ -761,6 +785,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let list = getMenuStorage();
     list = list.filter(m => m.id !== id);
     saveMenuStorage(list);
+
+    // Sync deletion to Firestore
+    if (typeof db !== 'undefined') {
+      db.collection('menus').doc(id).delete()
+        .catch(err => console.error('[Firestore] Error deleting menu:', err));
+    }
+
     renderMenuTable();
   };
 
@@ -871,10 +902,50 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ==========================================
      6. INITIALIZATION & RE-RENDER METHOD CALS
      ========================================== */
+
+  // Realtime Firestore listeners for Admin Page
+  if (typeof db !== 'undefined') {
+    // 1. Reservations Realtime Sync
+    db.collection('reservations').onSnapshot((snapshot) => {
+      const list = [];
+      snapshot.forEach(doc => list.push(doc.data()));
+      // Sort: Newest first
+      list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      localStorage.setItem('busendong_reservations', JSON.stringify(list));
+      renderReservationsTable();
+    }, (error) => {
+      console.error("[Firestore] Admin Reservations listener error:", error);
+    });
+
+    // 2. Categories Realtime Sync
+    db.collection('categories').onSnapshot((snapshot) => {
+      const list = [];
+      snapshot.forEach(doc => list.push(doc.data()));
+      if (list.length > 0) {
+        localStorage.setItem('busendong_categories', JSON.stringify(list));
+        renderMenuTable();
+      }
+    }, (error) => {
+      console.error("[Firestore] Admin Categories listener error:", error);
+    });
+
+    // 3. Menus Realtime Sync
+    db.collection('menus').onSnapshot((snapshot) => {
+      const list = [];
+      snapshot.forEach(doc => list.push(doc.data()));
+      if (list.length > 0) {
+        localStorage.setItem('busendong_menu_items', JSON.stringify(list));
+        renderMenuTable();
+      }
+    }, (error) => {
+      console.error("[Firestore] Admin Menus listener error:", error);
+    });
+  }
+
   renderReservationsTable();
   renderMenuTable();
 
-  // Watch for cross-tab updates
+  // Watch for cross-tab updates (fallback)
   window.addEventListener('storage', (e) => {
     if (e.key === 'busendong_reservations') {
       renderReservationsTable();

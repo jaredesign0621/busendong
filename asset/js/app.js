@@ -71,6 +71,43 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('busendong_menu_items', JSON.stringify(defaultMenus));
   }
 
+  // Seed default data to Firestore if empty
+  const defaultCategories = [
+    { id: 'signature', name: '시그니처' },
+    { id: 'donburi', name: '단품 덮밥' },
+    { id: 'sides', name: '프리미엄 곁들임' }
+  ];
+  if (typeof initializeDatabase === 'function') {
+    initializeDatabase(defaultMenus, defaultCategories);
+  }
+
+  // Realtime Firestore synchronization for Client Menu Page
+  if (typeof db !== 'undefined') {
+    // Categories listener
+    db.collection('categories').onSnapshot((snapshot) => {
+      const categories = [];
+      snapshot.forEach(doc => categories.push(doc.data()));
+      if (categories.length > 0) {
+        localStorage.setItem('busendong_categories', JSON.stringify(categories));
+        renderClientCategoryTabs();
+      }
+    }, (error) => {
+      console.error("[Firestore] Categories listener error:", error);
+    });
+
+    // Menus listener
+    db.collection('menus').onSnapshot((snapshot) => {
+      const menus = [];
+      snapshot.forEach(doc => menus.push(doc.data()));
+      if (menus.length > 0) {
+        localStorage.setItem('busendong_menu_items', JSON.stringify(menus));
+        renderClientMenus();
+      }
+    }, (error) => {
+      console.error("[Firestore] Menus listener error:", error);
+    });
+  }
+
   let activeCategoryFilter = 'all';
 
   // Render client category tabs dynamically
@@ -331,6 +368,17 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('busendong_reservations', JSON.stringify(currentReservations));
 
     console.log('Reservation saved to LocalStorage:', newReservation);
+
+    // Save to Firestore Database
+    if (typeof db !== 'undefined') {
+      db.collection('reservations').doc(newReservation.id).set(newReservation)
+        .then(() => {
+          console.log('[Firestore] Reservation uploaded successfully:', newReservation.id);
+        })
+        .catch(err => {
+          console.error('[Firestore] Error saving reservation to database:', err);
+        });
+    }
 
     // Populate dynamic phone display in success modal
     summaryPhone.textContent = phoneVal;
