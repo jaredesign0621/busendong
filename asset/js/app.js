@@ -217,6 +217,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       menuGrid.appendChild(card);
     });
+
+    // Run filter once to properly show the active filter category cards initially
+    filterClientMenus();
   };
 
   renderClientMenus();
