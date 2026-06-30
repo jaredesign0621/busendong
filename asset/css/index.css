@@ -1465,7 +1465,10 @@ textarea.form-input {
 [class*="InstagramFeed__HeaderContainer"],
 [class*="eapps-instagram-feed-header"],
 [class*="InstagramFeedHeader"],
-div[class*="Header__HeaderContainer"] {
+div[class*="Header__HeaderContainer"],
+.eapps-instagram-feed-title-container,
+[class*="instagram-feed-title-container"],
+[class*="TitleContainer"] {
   display: none !important;
   height: 0 !important;
   padding: 0 !important;
