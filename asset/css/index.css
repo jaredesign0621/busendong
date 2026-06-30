@@ -1459,14 +1459,14 @@ textarea.form-input {
 .instagram-widget-wrapper {
   margin-top: 40px;
 }
-/* Hide Elfsight Logo Watermark link and buttons completely */
-.instagram-widget-wrapper a[href*="elfsight.com"],
-.instagram-widget-wrapper a[class*="elfsight-app"],
-.instagram-widget-wrapper [class*="eapps-link"],
-.instagram-widget-wrapper [class*="Badge__Container"],
-.instagram-widget-wrapper [class*="BadgeContainer"],
-.instagram-widget-wrapper [class*="PlatformBadge"],
-.instagram-widget-wrapper a[target="_blank"] {
+/* Hide Elfsight Logo Watermark and Link buttons globally */
+a[href*="elfsight.com"],
+a[href*="instagram-feed-instashow"],
+a[class*="elfsight-app"],
+[class*="eapps-link"],
+[class*="Badge__Container"],
+[class*="BadgeContainer"],
+[class*="PlatformBadge"] {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
@@ -1476,5 +1476,8 @@ textarea.form-input {
   max-width: 0 !important;
   padding: 0 !important;
   margin: 0 !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
   pointer-events: none !important;
 }
