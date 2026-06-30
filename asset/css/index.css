@@ -1459,14 +1459,32 @@ textarea.form-input {
 .instagram-widget-wrapper {
   margin-top: 40px;
 }
-/* Hide Elfsight Logo Watermark and Link buttons globally */
+
+/* Hide Elfsight Feed Header (Follow us on Instagram / Profile Banner) completely */
+[class*="Header__Container"],
+[class*="InstagramFeed__HeaderContainer"],
+[class*="eapps-instagram-feed-header"],
+[class*="InstagramFeedHeader"],
+div[class*="Header__HeaderContainer"] {
+  display: none !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Hide Elfsight Logo Watermark and Link buttons globally (Absolute override) */
 a[href*="elfsight.com"],
 a[href*="instagram-feed-instashow"],
 a[class*="elfsight-app"],
 [class*="eapps-link"],
 [class*="Badge__Container"],
 [class*="BadgeContainer"],
-[class*="PlatformBadge"] {
+[class*="PlatformBadge"],
+body a[target="_blank"][style*="background-color"],
+body a[style*="font-family:Roboto"],
+body a[style*="height:24px"] {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
