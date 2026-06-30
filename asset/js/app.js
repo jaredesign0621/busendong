@@ -397,78 +397,27 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ==========================================
-     3. DYNAMIC INSTAGRAM FEED SYSTEM (JSON API)
+     3. DYNAMIC INSTAGRAM FEED SYSTEM (FIRESTORE)
      ========================================== */
-  // ⚠️ Behold.so 등에서 발급받으신 JSON 피드 API 주소를 여기에 기입하시면 실제 인스타그램과 실시간 연동됩니다.
-  const INSTAGRAM_BEHOLD_URL = ''; 
-
   const renderInstagramFeed = () => {
-    const instagramGrid = document.getElementById('instagram-grid');
-    if (!instagramGrid) return;
-
-    // 만약 API 주소가 비어있다면, 메뉴 디자인과 100% 매칭되는 아름다운 목업 데이터를 기본 출력합니다.
-    if (!INSTAGRAM_BEHOLD_URL) {
-      console.log('[Instagram] API 주소가 설정되지 않아 고품질 데모 데이터를 출력합니다.');
-      
-      const mockFeeds = [
-        {
-          mediaUrl: 'asset/img/kaisendon-signature.png',
-          permalink: 'https://instagram.com/jaredesign0621',
-          caption: '매일 아침 새벽 수산시장에서 공수해 온 대광어로 준비한 120시간 저온 숙성 카이센동, 부센동입니다. 오늘도 신선하고 맛있는 하루를 대접해 드리기 위해 정성껏 오픈 준비를 마쳤습니다. 🐟✨',
-          date: '2026.06.28'
-        },
-        {
-          mediaUrl: 'asset/img/kaisendon-special.png',
-          permalink: 'https://instagram.com/jaredesign0621',
-          caption: '단골 고객님들께 전하는 기쁜 소식! 캐나다산 최고급 우니(성게알)와 싱싱한 오도로가 가득 들어간 스페셜 카이센동 재료가 신선하게 입고되었습니다. 주말 저녁 낭만적인 광안리 데이트는 부센동과 함께하세요. 🥂🍣',
-          date: '2026.06.26'
-        },
-        {
-          mediaUrl: 'asset/img/restaurant-interior.png',
-          permalink: 'https://instagram.com/jaredesign0621',
-          caption: '아늑하고 따뜻한 우드 감성의 셰프 카운터(다찌) 석에서 재료 하나하나의 설명과 함께 특별한 미식 경험을 즐겨보세요. 혼술 및 반주용 사케 도쿠리도 시원하고 산뜻하게 준비되어 있습니다. 🍶🪵',
-          date: '2026.06.23'
-        },
-        {
-          mediaUrl: 'asset/img/hero-bg.png',
-          permalink: 'https://instagram.com/jaredesign0621',
-          caption: '눈부시게 푸르른 낮부터 감성 짙은 노을이 내려앉는 저녁까지, 광안리 바다를 산책하신 뒤 부센동에서 깊고 진한 감칠맛 한 그릇으로 완벽한 부산 여행의 마침표를 찍어보세요. 🌅🌊',
-          date: '2026.06.20'
-        }
-      ];
-
-      renderFeedItems(mockFeeds);
-    } else {
-      // 실제 API 호출 연동
-      fetch(INSTAGRAM_BEHOLD_URL)
-        .then(res => {
-          if (!res.ok) throw new Error('Network response was not ok');
-          return res.json();
-        })
-        .then(data => {
-          const feedList = Array.isArray(data) ? data : (data.data || []);
-          if (feedList.length === 0) throw new Error('Empty feed');
-          
-          const formattedFeeds = feedList.slice(0, 4).map(item => {
-            const dateObj = new Date(item.timestamp || item.prunedAt);
-            const formattedDate = !isNaN(dateObj) 
-              ? `${dateObj.getFullYear()}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${String(dateObj.getDate()).padStart(2, '0')}`
-              : '';
-              
-            return {
-              mediaUrl: item.mediaUrl || item.media_url,
-              permalink: item.permalink || 'https://instagram.com/jaredesign0621',
-              caption: item.caption || '부센동 공식 소식입니다.',
-              date: formattedDate
-            };
-          });
-          
-          renderFeedItems(formattedFeeds);
-        })
-        .catch(err => {
-          console.error('[Instagram API Error] 실시간 피드 호출 오류, 데모 데이터를 출력합니다:', err);
+    if (typeof db !== 'undefined') {
+      db.collection('instagram_feeds').onSnapshot((snapshot) => {
+        const list = [];
+        snapshot.forEach(doc => list.push(doc.data()));
+        if (list.length > 0) {
+          // Sort by ID descending (newest first)
+          list.sort((a, b) => b.id.localeCompare(a.id));
+          localStorage.setItem('busendong_instagram_feeds', JSON.stringify(list));
+          renderFeedItems(list);
+        } else {
           renderInstagramFeedWithMock();
-        });
+        }
+      }, (error) => {
+        console.error("[Firestore] Instagram feed listener error:", error);
+        renderInstagramFeedWithMock();
+      });
+    } else {
+      renderInstagramFeedWithMock();
     }
   };
 

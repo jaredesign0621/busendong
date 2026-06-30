@@ -900,6 +900,183 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   /* ==========================================
+     5. INSTAGRAM FEED MANAGEMENT SYSTEM
+     ========================================== */
+  const instagramTableBody = document.getElementById('instagram-table-body');
+  const instagramEmptyState = document.getElementById('instagram-empty-state');
+  const btnAddInstagramModal = document.getElementById('btn-add-instagram-modal');
+  const instagramModalOverlay = document.getElementById('instagram-modal-overlay');
+  const btnInstagramModalClose = document.getElementById('btn-instagram-modal-close');
+  const instagramManageForm = document.getElementById('instagram-manage-form');
+  const instagramFormId = document.getElementById('instagram-form-id');
+  const instagramFormImage = document.getElementById('instagram-form-image');
+  const instagramFormLink = document.getElementById('instagram-form-link');
+  const instagramFormDate = document.getElementById('instagram-form-date');
+  const instagramFormCaption = document.getElementById('instagram-form-caption');
+  const instagramModalTitle = document.getElementById('instagram-modal-title');
+
+  const getInstagramStorage = () => {
+    return JSON.parse(localStorage.getItem('busendong_instagram_feeds')) || [];
+  };
+
+  const saveInstagramStorage = (feeds) => {
+    localStorage.setItem('busendong_instagram_feeds', JSON.stringify(feeds));
+    if (typeof db !== 'undefined') {
+      feeds.forEach(feed => {
+        db.collection('instagram_feeds').doc(feed.id).set(feed)
+          .catch(err => console.error('[Firestore] Error saving instagram feed:', err));
+      });
+    }
+  };
+
+  const deleteInstagramItem = (id) => {
+    let list = getInstagramStorage();
+    list = list.filter(f => f.id !== id);
+    saveInstagramStorage(list);
+
+    if (typeof db !== 'undefined') {
+      db.collection('instagram_feeds').doc(id).delete()
+        .catch(err => console.error('[Firestore] Error deleting instagram feed:', err));
+    }
+    renderInstagramTable();
+  };
+
+  const renderInstagramTable = () => {
+    const feeds = getInstagramStorage();
+    instagramTableBody.innerHTML = '';
+
+    if (feeds.length === 0) {
+      instagramTableBody.style.display = 'none';
+      instagramEmptyState.style.display = 'block';
+      return;
+    }
+
+    instagramTableBody.style.display = 'table-row-group';
+    instagramEmptyState.style.display = 'none';
+
+    feeds.forEach(item => {
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td>
+          <img src="${item.mediaUrl}" alt="인스타 이미지" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid var(--glass-border);">
+        </td>
+        <td class="res-name-cell" style="vertical-align: middle;">
+          <div style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            ${item.caption}
+          </div>
+        </td>
+        <td class="res-code" style="vertical-align: middle;">${item.date}</td>
+        <td class="actions-cell" style="vertical-align: middle;">
+          <button class="btn-action edit" data-action="edit-instagram" data-id="${item.id}">수정</button>
+          <button class="btn-action delete" data-action="delete-instagram" data-id="${item.id}">삭제</button>
+        </td>
+      `;
+
+      instagramTableBody.appendChild(tr);
+    });
+
+    bindInstagramTableActionButtons();
+  };
+
+  const bindInstagramTableActionButtons = () => {
+    const editBtns = instagramTableBody.querySelectorAll('[data-action="edit-instagram"]');
+    const deleteBtns = instagramTableBody.querySelectorAll('[data-action="delete-instagram"]');
+
+    editBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        openInstagramEditModal(id);
+      });
+    });
+
+    deleteBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        if (confirm('정말로 이 인스타 피드를 삭제하시겠습니까?\n삭제 시 메인 홈페이지 인스타 피드에서도 즉시 제거됩니다.')) {
+          deleteInstagramItem(id);
+        }
+      });
+    });
+  };
+
+  const openInstagramEditModal = (id) => {
+    const list = getInstagramStorage();
+    const item = list.find(f => f.id === id);
+    if (!item) return;
+
+    instagramManageForm.reset();
+    instagramFormId.value = item.id;
+    instagramFormImage.value = item.mediaUrl;
+    instagramFormLink.value = item.permalink;
+    instagramFormDate.value = item.date;
+    instagramFormCaption.value = item.caption;
+
+    instagramModalTitle.textContent = '인스타 피드 정보 수정';
+    instagramModalOverlay.classList.add('active');
+  };
+
+  btnAddInstagramModal.addEventListener('click', () => {
+    instagramManageForm.reset();
+    instagramFormId.value = '';
+    
+    // 기본 날짜 자동 세팅 (오늘 날짜)
+    const today = new Date();
+    const formattedDate = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+    instagramFormDate.value = formattedDate;
+
+    instagramModalTitle.textContent = '새로운 인스타 피드 추가';
+    instagramModalOverlay.classList.add('active');
+  });
+
+  const closeInstagramModal = () => {
+    instagramModalOverlay.classList.remove('active');
+  };
+
+  btnInstagramModalClose.addEventListener('click', closeInstagramModal);
+  instagramModalOverlay.addEventListener('click', (e) => {
+    if (e.target === instagramModalOverlay) closeInstagramModal();
+  });
+
+  instagramManageForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const idVal = instagramFormId.value;
+    const imgVal = instagramFormImage.value;
+    const linkVal = instagramFormLink.value;
+    const dateVal = instagramFormDate.value;
+    const captionVal = instagramFormCaption.value;
+
+    let feeds = getInstagramStorage();
+
+    if (idVal.trim() !== '') {
+      // EDIT MODE
+      const index = feeds.findIndex(f => f.id === idVal);
+      if (index !== -1) {
+        feeds[index].mediaUrl = imgVal;
+        feeds[index].permalink = linkVal;
+        feeds[index].date = dateVal;
+        feeds[index].caption = captionVal;
+      }
+    } else {
+      // ADD MODE
+      const newItem = {
+        id: 'INSTA-' + Date.now(),
+        mediaUrl: imgVal,
+        permalink: linkVal,
+        date: dateVal,
+        caption: captionVal
+      };
+      feeds.push(newItem);
+    }
+
+    saveInstagramStorage(feeds);
+    renderInstagramTable();
+    closeInstagramModal();
+  });
+
+
+  /* ==========================================
      6. INITIALIZATION & RE-RENDER METHOD CALS
      ========================================== */
 
@@ -940,10 +1117,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }, (error) => {
       console.error("[Firestore] Admin Menus listener error:", error);
     });
+
+    // 4. Instagram Feeds Realtime Sync
+    db.collection('instagram_feeds').onSnapshot((snapshot) => {
+      const list = [];
+      snapshot.forEach(doc => list.push(doc.data()));
+      if (list.length > 0) {
+        // Sort by ID descending (newest first)
+        list.sort((a, b) => b.id.localeCompare(a.id));
+        localStorage.setItem('busendong_instagram_feeds', JSON.stringify(list));
+        renderInstagramTable();
+      } else {
+        // Seeding database with 4 mock feeds if completely empty
+        console.log('[Firestore] instagram_feeds 컬렉션이 비어있어 기본 데모 데이터를 등록합니다.');
+        const mockFeeds = [
+          {
+            id: 'INSTA-4',
+            mediaUrl: 'asset/img/kaisendon-signature.png',
+            permalink: 'https://instagram.com/jaredesign0621',
+            caption: '매일 아침 새벽 수산시장에서 공수해 온 대광어로 준비한 120시간 저온 숙성 카이센동, 부센동입니다. 오늘도 신선하고 맛있는 하루를 대접해 드리기 위해 정성껏 오픈 준비를 마쳤습니다. 🐟✨',
+            date: '2026.06.28'
+          },
+          {
+            id: 'INSTA-3',
+            mediaUrl: 'asset/img/kaisendon-special.png',
+            permalink: 'https://instagram.com/jaredesign0621',
+            caption: '단골 고객님들께 전하는 기쁜 소식! 캐나다산 최고급 우니(성게알)와 싱싱한 오도로가 가득 들어간 스페셜 카이센동 재료가 신선하게 입고되었습니다. 주말 저녁 낭만적인 광안리 데이트는 부센동과 함께하세요. 🥂🍣',
+            date: '2026.06.26'
+          },
+          {
+            id: 'INSTA-2',
+            mediaUrl: 'asset/img/restaurant-interior.png',
+            permalink: 'https://instagram.com/jaredesign0621',
+            caption: '아늑하고 따뜻한 우드 감성의 셰프 카운터(다찌) 석에서 재료 하나하나의 설명과 함께 특별한 미식 경험을 즐겨보세요. 혼술 및 반주용 사케 도쿠리도 시원하고 산뜻하게 준비되어 있습니다. 🍶🪵',
+            date: '2026.06.23'
+          },
+          {
+            id: 'INSTA-1',
+            mediaUrl: 'asset/img/hero-bg.png',
+            permalink: 'https://instagram.com/jaredesign0621',
+            caption: '눈부시게 푸르른 낮부터 감성 짙은 노을이 내려앉는 저녁까지, 광안리 바다를 산책하신 뒤 부센동에서 깊고 진한 감칠맛 한 그릇으로 완벽한 부산 여행의 마침표를 찍어보세요. 🌅🌊',
+            date: '2026.06.20'
+          }
+        ];
+        mockFeeds.forEach(feed => {
+          db.collection('instagram_feeds').doc(feed.id).set(feed)
+            .catch(err => console.error(err));
+        });
+      }
+    }, (error) => {
+      console.error("[Firestore] Admin Instagram listener error:", error);
+    });
   }
 
   renderReservationsTable();
   renderMenuTable();
+  renderInstagramTable();
 
   // Watch for cross-tab updates (fallback)
   window.addEventListener('storage', (e) => {
@@ -952,6 +1181,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (e.key === 'busendong_menu_items' || e.key === 'busendong_categories') {
       renderMenuTable();
+    }
+    if (e.key === 'busendong_instagram_feeds') {
+      renderInstagramTable();
     }
   });
 

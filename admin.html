@@ -905,6 +905,17 @@
             <span>메뉴 항목 관리</span>
           </div>
         </li>
+        <li>
+          <div class="sidebar-link" id="nav-btn-instagram" data-section="instagram">
+            <!-- Instagram Icon SVG -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            </svg>
+            <span>인스타 피드 관리</span>
+          </div>
+        </li>
       </ul>
 
       <!-- Sidebar Footer -->
@@ -1080,6 +1091,46 @@
         </div>
       </section>
 
+      <!-- ==========================================
+           SECTION 3: INSTAGRAM FEED MANAGEMENT
+           ========================================== -->
+      <section id="instagram-section" class="admin-section" style="padding:0; overflow:visible;">
+        
+        <!-- Header Info -->
+        <div class="content-header">
+          <div class="content-title">
+            <h2>인스타 피드 관리</h2>
+            <p>메인 홈페이지 하단에 실시간으로 표시될 인스타그램 게시물을 수동으로 관리하고 업로드합니다.</p>
+          </div>
+          <button class="btn-primary" id="btn-add-instagram-modal" style="font-size: 0.85rem; padding: 12px 20px; cursor: pointer;">
+            + 새로운 피드 추가
+          </button>
+        </div>
+
+        <!-- Instagram Feed Table -->
+        <div class="table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th width="15%">이미지 미리보기</th>
+                <th width="45%">캡션 내용 (피드 설명)</th>
+                <th width="15%">게시 날짜</th>
+                <th width="25%">관리 기능</th>
+              </tr>
+            </thead>
+            <tbody id="instagram-table-body">
+              <!-- Dynamically hydrated via JS -->
+            </tbody>
+          </table>
+          
+          <div id="instagram-empty-state" class="empty-state" style="display: none;">
+            <div class="empty-icon">📸</div>
+            <h3>등록된 인스타 피드가 없습니다</h3>
+            <p style="font-size: 0.9rem; margin-top: 5px;">우측 상단의 '+ 새로운 피드 추가' 버튼을 눌러 인스타그램 소식을 추가해 보세요.</p>
+          </div>
+        </div>
+      </section>
+
     </div>
   </div>
 
@@ -1235,6 +1286,53 @@
         <button type="submit" class="btn-primary" style="height: 49px; border-radius: 8px; font-size: 0.85rem; padding: 0 20px; font-weight: 600; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
           추가
         </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 4: INSTAGRAM FEED MANAGEMENT MODAL (OVERLAY)
+       ========================================== -->
+  <div class="modal-overlay" id="instagram-modal-overlay">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="btn-close-modal" id="btn-instagram-modal-close">&times;</div>
+      
+      <span class="form-label" style="color: var(--color-gold); margin-bottom: 5px; display: block;">INSTAGRAM SYSTEM</span>
+      <h3 style="font-size: 1.8rem; margin-bottom: 25px;" id="instagram-modal-title">새로운 인스타 피드 추가</h3>
+      
+      <form id="instagram-manage-form" class="modal-form">
+        <!-- Hidden input for ID (edit mode) -->
+        <input type="hidden" id="instagram-form-id">
+        
+        <div class="form-row">
+          <!-- Image URL -->
+          <div class="form-group">
+            <label for="instagram-form-image" class="form-label">이미지 주소 (Image URL) *</label>
+            <input type="text" id="instagram-form-image" class="form-input" placeholder="예: asset/img/kaisendon-signature.png" required>
+          </div>
+          
+          <!-- Post Link -->
+          <div class="form-group">
+            <label for="instagram-form-link" class="form-label">인스타그램 링크 (Post URL) *</label>
+            <input type="text" id="instagram-form-link" class="form-input" placeholder="예: https://instagram.com/p/..." required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <!-- Date -->
+          <div class="form-group">
+            <label for="instagram-form-date" class="form-label">게시 날짜 (Format: YYYY.MM.DD) *</label>
+            <input type="text" id="instagram-form-date" class="form-input" placeholder="예: 2026.06.30" required>
+          </div>
+        </div>
+        
+        <!-- Caption (Description) -->
+        <div class="form-group">
+          <label for="instagram-form-caption" class="form-label">피드 캡션 설명 *</label>
+          <textarea id="instagram-form-caption" class="form-input" style="min-height: 100px;" placeholder="인스타그램 게시물 글 내용을 입력해 주세요." required></textarea>
+        </div>
+        
+        <button type="submit" class="btn-submit" id="btn-instagram-submit">피드 저장하기</button>
       </form>
     </div>
   </div>
