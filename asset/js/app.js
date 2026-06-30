@@ -397,18 +397,59 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ==========================================
-     3. DYNAMIC INSTAGRAM FEED SYSTEM (FIRESTORE)
+     3. DYNAMIC INSTAGRAM FEED SYSTEM (HYBRID)
      ========================================== */
+  // ⚠️ Behold.so 등에서 발급받으신 JSON 피드 API 주소를 여기에 기입하시면 실제 인스타그램과 100% 자동 연동됩니다!
+  // 주소가 비어있을 때는 관리자 페이지에서 직접 입력한 Firestore 데이터 또는 데모 데이터를 출력합니다.
+  const INSTAGRAM_BEHOLD_URL = ''; 
+
   const renderInstagramFeed = () => {
+    // 1안. 실제 인스타그램 API 주소가 기입된 경우 -> 자동 연동
+    if (INSTAGRAM_BEHOLD_URL.trim() !== '') {
+      console.log('[Instagram] API 연동 주소를 감지하여 실제 인스타그램 게시물을 자동 로드합니다.');
+      fetch(INSTAGRAM_BEHOLD_URL)
+        .then(res => {
+          if (!res.ok) throw new Error('API fetch error');
+          return res.json();
+        })
+        .then(data => {
+          const feedList = Array.isArray(data) ? data : (data.data || []);
+          if (feedList.length === 0) throw new Error('Empty feed array');
+          
+          const formattedFeeds = feedList.slice(0, 4).map(item => {
+            const dateObj = new Date(item.timestamp || item.prunedAt);
+            const formattedDate = !isNaN(dateObj) 
+              ? `${dateObj.getFullYear()}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${String(dateObj.getDate()).padStart(2, '0')}`
+              : '';
+              
+            return {
+              mediaUrl: item.mediaUrl || item.media_url,
+              permalink: item.permalink || 'https://instagram.com/jaredesign0621',
+              caption: item.caption || '부센동 공식 인스타그램 소식입니다.',
+              date: formattedDate
+            };
+          });
+          renderFeedItems(formattedFeeds);
+        })
+        .catch(err => {
+          console.error('[Instagram API Error] 자동 연동 에러, 데이터베이스 백업으로 전환합니다:', err);
+          renderInstagramFeedFromFirestore();
+        });
+    } else {
+      // 2안. API 주소가 없는 경우 -> 어드민/데이터베이스 수동 관리 연동
+      renderInstagramFeedFromFirestore();
+    }
+  };
+
+  const renderInstagramFeedFromFirestore = () => {
     if (typeof db !== 'undefined') {
       db.collection('instagram_feeds').onSnapshot((snapshot) => {
         const list = [];
         snapshot.forEach(doc => list.push(doc.data()));
         if (list.length > 0) {
-          // Sort by ID descending (newest first)
           list.sort((a, b) => b.id.localeCompare(a.id));
           localStorage.setItem('busendong_instagram_feeds', JSON.stringify(list));
-          renderFeedItems(list);
+          renderFeedItems(list.slice(0, 4));
         } else {
           renderInstagramFeedWithMock();
         }
