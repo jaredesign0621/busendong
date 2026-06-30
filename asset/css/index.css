@@ -1459,10 +1459,14 @@ textarea.form-input {
 .instagram-widget-wrapper {
   margin-top: 40px;
 }
-.instagram-widget-wrapper a[href*="elfsight.com"] {
-  opacity: 0.15;
-  transition: var(--transition-smooth);
-}
-.instagram-widget-wrapper a[href*="elfsight.com"]:hover {
-  opacity: 0.6;
+/* Hide Elfsight Logo Watermark link completely */
+.instagram-widget-wrapper a[href*="elfsight.com"],
+.instagram-widget-wrapper a[class*="elfsight-app"],
+.instagram-widget-wrapper [class*="eapps-link"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  pointer-events: none !important;
 }
