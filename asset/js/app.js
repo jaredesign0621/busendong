@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderFeedItems(mockFeeds);
   };
 
-  // Run Feed Render init
-  renderInstagramFeed();
+  // Run Feed Render init (Disabled as Elfsight widget is active now)
+  // renderInstagramFeed();
 
 });

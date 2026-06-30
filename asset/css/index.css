@@ -1454,3 +1454,15 @@ textarea.form-input {
     gap: 20px;
   }
 }
+
+/* Elfsight widget integration custom styles */
+.instagram-widget-wrapper {
+  margin-top: 40px;
+}
+.instagram-widget-wrapper a[href*="elfsight.com"] {
+  opacity: 0.15;
+  transition: var(--transition-smooth);
+}
+.instagram-widget-wrapper a[href*="elfsight.com"]:hover {
+  opacity: 0.6;
+}
