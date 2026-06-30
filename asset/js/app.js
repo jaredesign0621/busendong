@@ -528,4 +528,41 @@ document.addEventListener('DOMContentLoaded', () => {
   // Run Feed Render init (Disabled as Elfsight widget is active now)
   // renderInstagramFeed();
 
+  /* ==========================================
+     4. ELFSIGHT WATERMARK SHADOW DOM OVERRIDER
+     ========================================== */
+  const cleanElfsightWatermark = () => {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      
+      // A. 일반 DOM 검출 및 삭제
+      const normalWatermark = document.querySelector('a[href*="elfsight.com"]');
+      if (normalWatermark) {
+        normalWatermark.remove();
+        console.log('[Elfsight Cleanup] Normal DOM watermark removed.');
+      }
+
+      // B. Shadow DOM 관통 검출 및 삭제
+      const widgetDivs = document.querySelectorAll('div[class*="elfsight-app"]');
+      widgetDivs.forEach(div => {
+        if (div.shadowRoot) {
+          const shadowWatermark = div.shadowRoot.querySelector('a[href*="elfsight.com"]');
+          if (shadowWatermark) {
+            shadowWatermark.remove();
+            console.log('[Elfsight Cleanup] Shadow DOM watermark removed.');
+            clearInterval(interval);
+          }
+        }
+      });
+
+      // 15초(30회 시도) 동안 검출되지 않으면 종료
+      if (attempts > 30) {
+        clearInterval(interval);
+      }
+    }, 500);
+  };
+
+  cleanElfsightWatermark();
+
 });
